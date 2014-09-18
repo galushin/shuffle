@@ -20,8 +20,13 @@
 #include <wx/splitter.h>
 #include <wx/textctrl.h>
 
+#include <algorithm>
+
+#include <ctime>
+
 shuffleDialog::shuffleDialog(wxDialog *dlg, const wxString &title)
-    : wxFrame(dlg, wxID_ANY, title)
+ : wxFrame(dlg, wxID_ANY, title)
+ , rnd_(std::time(0))
 {
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
@@ -30,29 +35,24 @@ shuffleDialog::shuffleDialog(wxDialog *dlg, const wxString &title)
     main_sizer->AddGrowableRow(0);
     this->SetSizer(main_sizer);
 
-    auto * splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition,
-                                           wxDefaultSize,
-                                           wxSP_NO_XP_THEME | wxSP_3D);
+    text_ = new wxTextCtrl(this, wxID_ANY, wxEmptyString,
+                           wxDefaultPosition, wxDefaultSize,
+                           wxTE_MULTILINE | wxHSCROLL);
 
-    source = new wxTextCtrl(splitter, wxID_ANY, wxEmptyString,
-                                     wxDefaultPosition, wxDefaultSize,
-                                     wxTE_MULTILINE | wxHSCROLL);
+    main_sizer->Add(text_, 1, wxEXPAND | wxALL, 0);
 
-    result = new wxTextCtrl(splitter, wxID_ANY, wxEmptyString,
-                                     wxDefaultPosition, wxDefaultSize,
-                                     wxTE_MULTILINE | wxHSCROLL);
-
-    main_sizer->Add(splitter, 1, wxEXPAND | wxALL, 0);
+    main_sizer->Add(new wxButton(this, wxID_REFRESH));
 
     this->Layout();
 
-    splitter->SplitHorizontally(source, result, 0);
-
-    this->Bind(wxEVT_UPDATE_UI, &shuffleDialog::on_text_update, this,
-               result->GetId());
+    Bind(wxEVT_BUTTON, &shuffleDialog::on_refresh, this, wxID_REFRESH);
 }
 
-void shuffleDialog::on_text_update(wxUpdateUIEvent & event)
+void shuffleDialog::on_refresh(wxCommandEvent &)
 {
-    result->SetValue(source->GetValue());
+    auto s = text_->GetValue().ToStdWstring();
+
+    std::shuffle(s.begin(), s.end(), rnd_);
+
+    text_->SetValue(s);
 }

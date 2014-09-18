@@ -16,16 +16,19 @@
 
 #include "shuffleApp.h"
 
+#include <random>
+
 class shuffleDialog: public wxFrame
 {
 public:
     shuffleDialog(wxDialog *dlg, const wxString& title);
 
 private:
-    wxTextCtrl * source;
-    wxTextCtrl * result;
+    void on_refresh(wxCommandEvent & event);
 
-    void on_text_update(wxUpdateUIEvent & event);
+    wxTextCtrl * text_;
+
+    std::mt19937 rnd_;
 };
 
 #endif // SHUFFLEMAIN_H
